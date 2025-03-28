@@ -1,17 +1,6 @@
-#!/usr/bin/env python
-# coding: utf-8
+# Topic: Data visualization and analysis of air pollution in Hong Kong
 
-# # <span style='color:Orange'>Topic<span>
-# 
-# ### Data visualization and analysis of air pollution in Hong Kong
-# 
-
-# # Required Libraries
-
-# In[5]:
-
-
-# Required Libraries
+# -------------------- Required Libraries --------------------
 import os
 import numpy as np
 import pandas as pd
@@ -22,10 +11,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-# # Data Web Scraping
-
-# In[6]:
-
+# -------------------- Data Web Scraping --------------------
 
 # Required Libraries
 from selenium import webdriver
@@ -33,7 +19,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
-# Path to your ChromeDriver executable
+# Path to ChromeDriver executable
 chrome_driver_path = 'chromedriver-win64/chromedriver.exe'  # Update this path
 
 # Configure Chrome options (optional)
@@ -69,10 +55,7 @@ time_rows = soup.find_all('div', class_='myTimeInTable')
 driver.quit()
 
 
-# # Data Cleansing
-
-# In[7]:
-
+# -------------------- Data Cleansing --------------------
 
 # Select data from web scrapped raw data
 web_scrapped_data_from_EPD = table_rows[458:]
@@ -81,12 +64,6 @@ web_scrapped_data_from_EPD = table_rows[458:]
 data_from_EPD = []
 for i in range(len(web_scrapped_data_from_EPD)):
     data_from_EPD.append(web_scrapped_data_from_EPD[i].text)
-
-data_from_EPD
-
-
-# In[8]:
-
 
 # Initialize variables
 final_data = []
@@ -122,11 +99,6 @@ for station in final_data:
 
 # Turn the cleansed air pollutants data into DataFrame
 data = pd.DataFrame(cleansed_data, columns = ['STATION', 'NO2', 'O3', 'SO2', 'CO', 'RSP', 'FSP', 'AQHI'])
-data
-
-
-# In[9]:
-
 
 # Extract date and time information
 date_time_str = (time_rows[0].text)[4:-1]  # Remove '(At ' from the beginning and ')' from the end
@@ -139,137 +111,35 @@ hour = date_time_obj.hour + 1  # Adjusting the hour
 # Add the time data into the dataset
 data['DATE'] = date_str
 data['HOUR'] = hour
-data
 
-
-# In[13]:
-
-
+# Replace all "-" values into None
 data.replace("-", None, inplace=True)
-data
-
-
-# In[14]:
-
 
 # Rearrange and sort the data
 data = data.loc[:, ['DATE', 'HOUR', 'STATION', 'NO2', 'O3', 'SO2', 'CO', 'RSP', 'FSP', 'AQHI']]
 data = data.sort_values(by = ['DATE', 'HOUR', 'STATION'], ignore_index = True)
-data
 
+# -------------------- Storing the data in MongoDB Atlas --------------------
 
-# # Linkage with MongoDB Atlas
-
-# In[16]:
-
-
+# Required Libraries
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
+# The url to connect MongoDB
 uri = "mongodb+srv://user1:admin@airpollution.ktxvlrh.mongodb.net/?retryWrites=true&w=majority&appName=AirPollution"
 
 # Create a new client and connect to the server
 client = MongoClient(uri, server_api=ServerApi('1'))
 
-# Send a ping to confirm a successful connection
-try:
-    client.admin.command('ping')
-    print("Pinged your deployment. You successfully connected to MongoDB!")
-except Exception as e:
-    print(e)
-
-
-# In[17]:
-
-
-# Check all database in the client
-print(client.list_database_names())
-
-
-# In[19]:
-
-
-# Convert DataFrame to list of dictionaries
-data_to_insert = data.to_dict(orient="records")
-
 # Asses to the database and collection
 database = client["AirPollutants"]
 collection = database["PollutantsAtTheMoment"]
 
+# Convert DataFrame to list of dictionaries
+data_to_insert = data.to_dict(orient="records")
+
 # Insert cleaned data into MongoDB
-try:    
-    collection.insert_many(data_to_insert)
-    print("Cleaned data inserted successfully!")
-except Exception as e:
-    print(e)
-
-
-# In[24]:
-
-
-df = pd.DataFrame(list(collection.find()))
-df.drop(columns=["_id"], inplace=True)
-df
-
-
-# In[ ]:
+collection.insert_many(data_to_insert)
 
 
 
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# # Remarks
-
-# ## Remarks from Hong Kong Environmental Protection Department(HKEPD):
-# In the dataset:
-# 
-# 1. All Pollutant unit in μg/m3 except CO which is in 10μg/m3
-# 2. N.A. = data not available 
-# 3. CO = Carbon Monoxide
-# 4. FSP = Fine Suspended Particulates (PM2.5)
-# 5. NO2 = Nitrogen Dioxide
-# 6. NOX = Nitrogen Oxides
-# 7. O3 = Ozone
-# 8. RSP = Respirable Suspended Particulates (PM10)
-# 9. SO2 = Sulphur Dioxide
-# --------------------------------------------------
-# ## All 18 stations are as follows:
-# ### General Stations
-# 1. Western
-# 2. Southern
-# 3. Eastern
-# 4. KwunTong
-# 5. ShamShuiPo
-# 6. KwaiChung
-# 7. TsuenWan
-# 8. TseungKwanO
-# 9. YuenLong
-# 10. TuenMun
-# 11. TungChung
-# 12. TaiPo
-# 13. ShaTin
-# 14. North
-# 15. TapMun
-# ### Roadside Stations
-# 16. CausewayBay
-# 17. Central
-# 18. MongKok
-# --------------------------------------------------
