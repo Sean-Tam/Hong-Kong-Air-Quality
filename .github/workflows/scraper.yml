@@ -1,0 +1,25 @@
+name: Scheduled Data Scraping
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Runs every hour (adjust cron expression if needed)
+
+jobs:
+  scrape-and-store:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3 # Ensure the workflow can access your script
+
+      - name: Setup Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.12.7' # Use the version compatible with your script
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt # Install required Python packages
+
+      - name: Run Python Script
+        run: python PythonWebScraping.py # Execute your scraping script
