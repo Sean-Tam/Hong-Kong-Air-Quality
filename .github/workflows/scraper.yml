@@ -15,7 +15,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v3
         with:
-          python-version: '3.12.7' # Use the version compatible with your script
+          python-version: '3.11' # Use the version compatible with your script
 
       - name: Install dependencies
         run: |
