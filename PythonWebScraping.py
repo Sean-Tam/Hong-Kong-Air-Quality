@@ -18,20 +18,18 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+import chromedriver_autoinstaller
 
-# Path to ChromeDriver executable
-chrome_driver_path = 'chromedriver-win64/chromedriver.exe'  # Update this path
+chromedriver_autoinstaller.install()
 
-# Configure Chrome options (optional)
-options = Options()
-options.headless = True  # Run in headless mode (without opening a browser window)
-options.add_argument('--disable-gpu')  # Disable GPU acceleration (useful for some environments)
+#Chrome options
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument('--no-sandbox')
+chrome_options.add_argument("--disable-infobars")
+chrome_options.add_argument('--disable-dev-shm-usage')
 
-# Create a Service object for ChromeDriver
-service = Service(chrome_driver_path)
-
-# Initialize the WebDriver with the Service object and options
-driver = webdriver.Chrome(service=service, options=options)
+#Run chrome
+driver = webdriver.Chrome(options=chrome_options)
 
 # Navigate to the website
 url = 'https://www.aqhi.gov.hk/en/index.html'
